@@ -7,35 +7,29 @@ import java.util.Scanner;
 public class Client {
     private final String userName;
     private final Socket socket;
-    private final Client client;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
 
-    private Client(String userName, Socket socket) {
+    public Client(String userName, Socket socket) {
         this.socket = socket;
         this.userName = userName;
-        client = new Client(userName, socket);
         try {
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
             closeStream(socket, bufferedReader, bufferedWriter);
         }
-        sendMessage();
     }
 
     public void listenMessage() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String message;
-                while (socket.isConnected()) {
-                    try {
-                        message = bufferedReader.readLine();
-                        System.out.println(message);
-                    } catch (IOException e) {
-                        closeStream(socket, bufferedReader, bufferedWriter);
-                    }
+        new Thread(() -> {
+            String message;
+            while (socket.isConnected()) {
+                try {
+                    message = bufferedReader.readLine();
+                    System.out.println(message);
+                } catch (IOException e) {
+                    closeStream(socket, bufferedReader, bufferedWriter);
                 }
             }
         }).start();
@@ -49,7 +43,7 @@ public class Client {
 
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
-                bufferedWriter.write(userName + " :" + scanner.nextLine());
+                bufferedWriter.write(scanner.nextLine() + " - от: " + userName);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
                 }
